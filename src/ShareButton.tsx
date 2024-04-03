@@ -97,7 +97,7 @@ interface CustomProps<LinkOptions> {
   /**
    * URL of the shared page
    */
-  url: string;
+  url: () => string | Promise<string>;
   style?: React.CSSProperties;
   windowWidth?: number;
   windowHeight?: number;
@@ -133,7 +133,13 @@ export default function ShareButton<LinkOptions extends Record<string, unknown>>
   ...rest
 }: Props<LinkOptions>) {
   const handleClick = async (event: React.MouseEvent<HTMLButtonElement>) => {
-    const link = networkLink(url, opts);
+    let preparedUrl = typeof url === 'function' ? url() : url;
+
+    if (isPromise(preparedUrl)) {
+      preparedUrl = await preparedUrl;
+    }
+
+    const link = networkLink(preparedUrl.toString(), opts);
 
     if (disabled) {
       return;
